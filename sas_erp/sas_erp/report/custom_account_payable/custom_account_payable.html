@@ -1,0 +1,273 @@
+
+<style>
+	.print-format {
+		padding: 0px !important;
+		margin: 0px !important;
+	}
+
+	.print-format td, .print-format th {
+		padding: 3px !important; 
+	}
+
+	.page-footer {
+		width: 100%;
+		border: none !important;
+		position: fixed;
+		bottom: 0;
+	}
+
+	.page-header {
+		border: none !important;
+		width: 100%;
+		position: fixed;
+		top: 0;
+	}
+
+	table {
+		font-size: 18px;
+		border: 2px solid white;
+		width: 100%;
+		table-layout: fixed;
+	}
+
+	th {
+		font-size: 15px; 
+	}
+
+	td {
+		font-size: 12px;
+	}
+
+	@media screen {
+		.page-footer,
+		.page-footer-space {
+			display: none;
+		}
+
+		.page-header,
+		.page-header-space {
+			display: none;
+		}
+	}
+
+	@media print {
+		@page {
+			size: A4;
+			margin-left: 4mm;
+			margin-right: 4mm;
+		}
+
+		thead {
+			display: table-header-group;
+		}
+
+		tfoot {
+			display: table-footer-group;
+		}
+
+		.page-footer,
+		.page-footer-space {
+			height: 120px;
+			margin-bottom: 0px;
+		}
+
+		.page-header,
+		.page-header-space {
+			height: 130px;
+			margin-bottom: 80px;
+			margin-top: 0px;
+		}
+		
+	}
+	
+</style>
+
+{% var total = 0 %}
+
+<div class="main">
+	<div class="page-header" style="">
+		<div id="" class="">
+			<div style=""><img src="/files/makkah header fin.png" alt="Header"></div>
+			<h2 class="text-center">{%= __("STATEMENT OF ACCOUNT") %}</h2>
+		{% if ((filters.party_type && filters.party)) { %}
+					<table width="100%">
+						<tr>
+						{% if (filters.party_type == "Customer") { %}
+							<th style="background-color:rgb(109, 146, 238);color:white;" width="20%">
+								CUSTOMER NAME
+							</th>
+							{% } else if (filters.party_type == "Supplier") { %}
+							<th style="background-color:rgb(109, 146, 238);color:white;" width="20%">
+								SUPPLIER NAME
+							</th>
+							{% } %}
+							<th width="55%" style="color: black;">:
+								{%= filters.party %}
+							</th>
+							<th style="background-color:rgb(109, 146, 238);color:white;" width="10%">
+								DATE
+							</th>
+							<th style="text-align:right; color: black;" width="15%">: 
+								{%= frappe.datetime.str_to_user(filters.report_date) %}
+							</th>
+						</tr>
+						{% } %}
+					</table>
+		</div>
+	</div>
+
+	<div style="" class="page-footer">
+		<div id="" class="">
+			<div><img src="/files/makkah footer fin.png" alt="Footer"></div>
+		</div>
+	</div>
+
+	<table width="100%">
+
+		<thead>
+			<tr>
+				<td>
+					<div class="page-header-space"></div>
+				</td>
+			</tr>
+		</thead>
+
+		<tbody>
+			<tr>
+				<td>
+					<div class="content">
+						
+						<div>
+
+							<table border="1" width="100%">
+								<thead>
+								  <tr>
+									<th width="10%" style="background-color: rgb(109, 146, 238); color: white; text-align: center;">DATE</th>
+									<th width="14%" style="background-color: rgb(109, 146, 238); color: white; text-align: center;">TYPE</th>
+									<th width="20%" style="background-color: rgb(109, 146, 238); color: white; text-align: center;">INVOICE NO</th>
+									<th width="10%" style="background-color: rgb(109, 146, 238); color: white; text-align: center;">AMOUNT</th>
+									<th width="14%" style="background-color: rgb(109, 146, 238); color: white; text-align: center;">TOTAL PAID</th>
+									<th width="12%" style="background-color: rgb(109, 146, 238); color: white; text-align: center;">BALANCE</th>
+                                    <th width="10%" style="background-color: rgb(109,146,238); color: white; text-align: center;">RUNNING TOTAL</th>
+								  </tr>
+								</thead>
+								<tbody>
+									{% 
+										var totalInvoiced = 0;
+										var totalPaid = 0;
+										var totalOutstanding = 0;
+                                        var running_total = 0;
+									%}
+
+									{% for(var i=0, l=data.length; i < l; i++) { %} {% if(data[i].posting_date) { %}
+                                    {% 
+                                        var amount = data[i].invoiced || 0;
+                                        var paid = data[i].paid || 0;
+                                        var balance = data[i].outstanding || (amount - paid);
+                                        running_total = running_total + balance;
+                                    %}
+									<tr>
+										<td style="width: 8%; text-align: center;">{{ frappe.datetime.str_to_user(data[i].posting_date) }}</td>
+										<td style="width: 9%; text-align: center;">
+                                            {% if (data[i].voucher_type === 'Sales Invoice' && data[i].is_return) { %}
+                                                SALES RETURN
+                                            {% } else if (data[i].voucher_type === 'Sales Invoice') { %}
+                                                CREDIT INVOICE
+                                            {% } else { %}
+                                                {{ data[i].voucher_type }}
+                                            {% } %}
+                                        </td>
+										<td style="width: 24%; text-align: center;">{{ data[i].voucher_no }}</td>
+										<td style="width: 10%; text-align: center;">{{ format_currency(data[i]["invoiced"], data[i]["currency"]) }}</td>
+										<td style="width: 10%; text-align: center;">{{ format_currency(data[i]["paid"], data[i]["currency"]) }}</td>
+										<td style="width: 9%; text-align: center;">{{ format_currency(data[i]["outstanding"], data[i]["currency"]) }}</td>
+                                        <td style="width: 9%; text-align: center;">{{ format_currency(running_total, data[i]["currency"]) }}</td>
+                                    </tr>
+									{% 
+										totalInvoiced += data[i].invoiced;
+										totalPaid += data[i].paid;
+										totalOutstanding += data[i].outstanding;
+									%}
+
+									{% } %}
+									{% } %}
+
+									<tr>
+										<td></td>
+										<td></td>
+										<td></td>
+										<td></td>
+										<td></td>
+										<td style="background-color:rgb(255, 145, 111);color:white;"><b>TOTAL AMOUNT</b></td>
+										<td style="text-align: right; background-color:rgb(255, 145, 111);">
+											{% if(data.length > 0) { %}
+											{%= format_currency(totalInvoiced, data[0].currency) %}
+											{% } %}
+										</td>
+									</tr>
+									
+									<tr>
+										<td></td>
+										<td></td>
+										<td></td>
+										<td></td>
+										<td></td>
+										<td style="background-color:white;color:black;"><b>TOTAL PAID</b></td>
+										<td style="text-align: right">
+											{% if(data.length > 0) { %}
+											{%= format_currency(totalPaid, data[0].currency) %}
+											{% } %}
+										</td>
+									</tr>
+									
+									<tr>
+										<td></td>
+										<td></td>
+										<td></td>
+										<td></td>
+										<td></td>
+										<td style="background-color:yellow;color:black;"><b> BALANCE</b></td>
+										<td style="text-align: right;background-color:yellow;">
+											{% if(data.length > 0) { %}
+											{%= format_currency(totalOutstanding, data[0].currency) %}
+											{% } %}
+										</td>
+									</tr>
+									<tr height="75px">
+										<td></td>
+										<td></td>
+										<td></td>
+										<td></td>
+										<td></td>
+										<td></td>
+										<td></td>
+									</tr>
+									<tr>
+										<td colspan="2" style="text-align: center; font-size:14px;"><b>FINANCE MANAGER</b></td>
+										<td colspan="3"></td>
+										<td colspan="2" style="text-align: center; font-size:14px;"><b>GENERAL MANAGER <br> Sahid Siddique Hussain</b></td>
+									</tr>
+									<tr>
+										<td colspan="2" style="text-align: center; font-size:14px;"><b>__________________________________</b></td>
+										<td colspan="3"></td>
+										<td colspan="2" style="text-align: center; font-size:14px;"><b>__________________________________</b></td>
+									</tr>
+								</tbody>
+							</table>
+						</div>
+						</td>
+						</tr>
+						</tbody>
+
+						<tfoot>
+							<tr>
+								<td>
+									<!--place holder for the fixed-position footer-->
+									<div class="page-footer-space"></div>
+								</td>
+							</tr>
+						</tfoot>
+
+						</table>
+
+						</div>
