@@ -1,0 +1,290 @@
+<style>
+	.print-format {
+		padding: 0px !important;
+		margin: 0px !important;
+	}
+
+	.print-format td, .print-format th {
+    padding: 3px !important; 
+	}
+
+	.page-footer {
+		width: 100%;
+		border: none !important;
+		position: fixed;
+		bottom: 0;
+	}
+
+	.page-header {
+		border: none !important;
+		width: 100%;
+		position: fixed;
+		top: 0;
+	}
+	table {
+        font-size: 14px; 
+    }
+
+    th {
+        font-size: 14px; 
+    }
+	td {
+        font-size: 11px;
+    }
+
+	@media screen {
+
+		.page-footer,
+		.page-footer-space {
+			display: none;
+		}
+
+		.page-header,
+		.page-header-space {
+			display: none;
+		}
+
+	}
+
+	@media print {
+		thead {
+			display: table-header-group;
+		}
+
+		tfoot {
+			display: table-footer-group;
+		}
+
+		.page-footer,
+		.page-footer-space {
+			height: 120px;
+			margin-bottom: 0px;
+		}
+
+		.page-header,
+		.page-header-space {
+			height: 130px;
+			margin-bottom: 80px;
+			margin-top: 0px;
+		}
+
+	}
+</style>
+{% var total = 0 %}
+
+<div class="main">
+	<div class="page-header" style="">
+		<div id="" class="">
+			<div style=""><img src="/files/makkah header fin.png" alt="Header"></div>
+			<h2 class="text-center">{%= __("Statement of Account") %}</h2>
+			{% if ((filters.party_type && filters.party) || filters.party_name) { %}
+						<table width="100%">
+							{% if (filters.party) { %}
+							<!-- <tr>
+								<th style="background-color:rgb(109, 146, 238);color:white;">
+									{%= filters.party_type %}
+								</th>
+								<td>
+									{%= filters.party %}
+								</td>
+							</tr>
+							{% } %} -->
+							{% if (filters.party_name) { %}
+							<tr>
+								<th style="background-color:rgb(109, 146, 238);color:white;" width="20%">
+									{%= filters.party_type %} Name
+								</th>
+								<td width="50%">
+									{%= filters.party_name %}
+								</td>
+								<td style="background-color:rgb(109, 146, 238);color:white;" width="8%">
+									DATE
+								</td>
+								<td style="text-align:right;" width="22%">: 
+									{%= frappe.datetime.str_to_user(filters.from_date) %}
+									{%= __("TO") %}
+									{%= frappe.datetime.str_to_user(filters.to_date) %}
+								</td>
+							</tr>
+							{% } %}
+						</table>
+						{% } %}
+		</div>
+	</div>
+
+	<div style="" class="page-footer">
+		<div id="" class="">
+			<div><img src="/files/makkah footer fin.png" alt="Footer"></div>
+		</div>
+	</div>
+
+	<table width="100%">
+
+		<thead>
+			<tr>
+				<td>
+					<!--place holder for the fixed-position header-->
+					<div class="page-header-space"></div>
+				</td>
+			</tr>
+		</thead>
+
+		<tbody>
+			<tr>
+				<td>
+					<!--*** CONTENT GOES HERE ***-->
+					<div class="content">
+						
+						<!-- <h5 class="text-center">
+							{%= frappe.datetime.str_to_user(filters.from_date) %}
+							{%= __("to") %}
+							{%= frappe.datetime.str_to_user(filters.to_date) %}
+						</h5> -->
+						
+
+						<div>
+
+							<table class="table table-bordered" width="100%">
+								<thead>
+									<tr>
+										<th style="width: 12%;background-color:rgb(109, 146, 238);color:white;">{%=
+											__("DATE") %}
+										</th>
+										<th style="width: 18%;background-color:rgb(109, 146, 238);color:white;">{%=
+											__("TYPE") %}
+										</th>
+										<th style="width: 15%;background-color:rgb(109, 146, 238);color:white;">{%=
+											__("INVOICE") %}
+										</th>
+										<th style="width: 24%;background-color:rgb(109, 146, 238);color:white;">{%=
+											__("REFERENCE") %}
+										</th>
+										<th style="width: 14%;background-color:rgb(109, 146, 238);color:white;">{%=
+											__("DEBIT") %}
+										</th>
+										<th style="width: 15%;background-color:rgb(109, 146, 238);color:white;">{%=
+											__("PAYMENT") %}
+										</th>
+										<th style="width: 17%;background-color:rgb(109, 146, 238);color:white;">{%=
+											__("REMAINDER")
+											%}</th>
+									</tr>
+								</thead>
+
+								<tbody>
+									{% for(var i=0, l=data.length; i < l; i++) { %} {% if(data[i].posting_date) { %}
+										<tr>
+										<td style="font-size:10.5px;">{%=
+											frappe.datetime.str_to_user(data[i].posting_date)%}
+										</td>
+										<td>{%= data[i].voucher_type === 'Sales Invoice' ? 'CREDIT INVOICE' : data[i].voucher_type %}</td>
+										<td>{%= data[i].voucher_no %}</td>
+										{% var longest_word = cstr(data[i].remarks).split(" ").reduce((longest, word) =>
+										word.length>
+										longest.length ? word : longest, ""); %}
+										<td {% if longest_word.length> 45 %} class="overflow-wrap-anywhere" {% endif %}>
+											<span>
+												{% if(!(filters.party || filters.account)) { %}
+												{%= data[i].party || data[i].account %}
+												<br>
+												{% } %}
+
+												{%= __("Remarks") %}: {%= data[i].remarks %}
+												{%= data[i].custom_lpo_and_reference_no %}
+												{% if(data[i].bill_no) { %}
+												<br>{%= __("Supplier Invoice No") %}: {%= data[i].bill_no %}
+												{% } %}
+											</span>
+										</td>
+										<td style="text-align: right">
+											{%= format_currency(data[i].debit, filters.presentation_currency) %}
+										</td>
+										<td style="text-align: right">
+											{%= format_currency(data[i].credit, filters.presentation_currency) %}
+										</td>
+										<td style="text-align: right;">
+											{%= format_currency(data[i].balance, filters.presentation_currency) %}
+										</td>
+			</tr>
+			{% } %}
+			{% } %}
+			{% data.reverse() %}
+
+			<tr>
+				<td></td>
+				<td></td>
+				<td></td>
+				<td></td>
+				<td></td>
+				<td style="background-color:rgb(109, 146, 238);color:white;"><b>Payment</b></td>
+				<td style=" text-align: right; background-color:rgb(255, 145, 111);">
+					{% if(data.length > 1) { %}
+					{%= format_currency(data[1].credit, filters.presentation_currency || data[1].account_currency)
+					%}
+					{% } %}
+				</td>
+				
+			</tr>
+
+			<tr>
+				<td></td>
+				<td></td>
+				<td></td>
+				<td></td>
+				<td></td>
+				<td style="background-color:rgb(109, 146, 238);color:white;"><b>Transaction</b></td>
+				<td style="text-align: right">
+					{% if(data.length > 1) { %}
+					{%= format_currency(data[1].debit, filters.presentation_currency || data[1].account_currency) %}
+					{% } %}
+				</td>
+			</tr>
+
+			<tr>
+				<td></td>
+				<td></td>
+				<td></td>
+				<td></td>
+				<td></td>
+				<td style="background-color:rgb(109, 146, 238);color:white;"><b>Balance</b></td>
+				<td style="text-align: right;background-color:yellow;">
+					{% if(data.length > 1) { %}
+					{%= format_currency(data[1].balance, filters.presentation_currency || data[1].account_currency)
+					%}
+					{% } %}
+				</td>
+			</tr>
+			<tr height="25px">
+				<td></td>
+				<td></td>
+				<td></td>
+				<td></td>
+				<td></td>
+				<td></td>
+				<td></td>
+			</tr>
+			<tr>
+				<td></td>
+				<td colspan="2" style="text-align: center; font-size:14px;"><b>FINANCE MANAGER</b></td>
+				<td></td>
+				<td colspan="3" style="text-align: center; font-size:14px;"><b>GENERAL MANAGER <br> Sahid Siddique Hussain</b></td>
+			</tr>
+		</tbody>
+	</table>
+</div>
+</td>
+</tr>
+</tbody>
+
+<tfoot>
+	<tr>
+		<td>
+			<!--place holder for the fixed-position footer-->
+			<div class="page-footer-space"></div>
+		</td>
+	</tr>
+</tfoot>
+
+</table>
+
+</div>
